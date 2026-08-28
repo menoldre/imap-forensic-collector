@@ -376,7 +376,7 @@ def load_settings(argv: list[str] | None = None) -> Settings:
             ap.error("source host and user must be set in config.ini")
         s.password = os.environ.get("IMAP_PASSWORD", "")
         if not s.password:
-            s.password = getpass.getpass(f"IMAP password for {s.user}@{s.host}: ")
+            s.password = getpass.getpass(f"IMAP password for {s.user} at {s.host}: ")
     return s
 
 
@@ -619,6 +619,7 @@ class Collector:
         self.prior_uidvalidity: dict[str, int] = {}
         self.prior_dirs: dict[str, str] = {}  # folder -> folder_dir from prior manifest
         self.manifest_hash_ok = True
+        self.fatal: str | None = None
 
     # ---- lifecycle ------------------------------------------------------- #
 
@@ -638,9 +639,11 @@ class Collector:
                     self.collect_folder(raw, delim)
         except KeyboardInterrupt:
             log.error("Interrupted by user; partial collection. Re-run with --resume.")
+            self.fatal = "interrupted by user"
             rc = 130
         except Exception as e:  # noqa: BLE001
             log.exception("Fatal error: %s", e)
+            self.fatal = f"{type(e).__name__}: {e}"
             rc = 2
         finally:
             self.cx.close()
@@ -961,7 +964,10 @@ class Collector:
         failed_total = sum(max(st.failed, 0) for st in self.stats)
         if failed_total:
             log.error("%d message(s) could not be collected; see %s", failed_total, FAILURES_NAME)
-        log.info("Completeness check: %s", "PASS" if ok else "FAIL")
+        if self.fatal:
+            ok = False
+            log.error("Run did not complete: %s", self.fatal)
+        log.info("Completeness check: %s", "PASS" if ok else "FAIL (run incomplete)" if self.fatal else "FAIL")
         log.info("=" * 72)
         return ok
 
