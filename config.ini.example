@@ -1,3 +1,10 @@
+# imap-forensic-collector configuration
+#
+# Comments: both '#' and ';' start a comment, including at the end of a value line.
+# Consequence: a value that itself contains '#' or ';' (e.g. a folder named
+# "Projects #3") will be truncated at that character; quoting does not help.
+# For such folder names use the --folders command-line option instead.
+
 [source]
 host = mail.b.hostedemail.com
 port = 993
