@@ -97,6 +97,15 @@ a test server; the file's SHA-256 and the server certificate's CN/expiry are log
 the header so a test run is distinguishable from a production run. Certificate
 verification is never disabled.
 
+## Validation fixture
+
+`testdata/` holds a complete, reproducible validation: the raw Dovecot mailbox
+(`dovecot-maildir-tester.tar.gz`, 8 folders / 96 messages, with UIDVALIDITY and UIDs),
+the server definition, the configuration used, the collector's recorded output
+(`testdata/expected/`), and a comparison tool. See `testdata/README.md` for the
+step-by-step procedure to stand up the server, restore the mailbox, collect, and
+compare against the recorded result.
+
 ## Testing
 
 `tests/test_fake_imap.py` runs the collector end to end against an in-process fake

@@ -1,0 +1,10 @@
+From: Sender 10 <sender10@example.com>
+To: tester@example.com
+Cc: cc10@example.com
+Date: Thu, 31 Jan 2019 10:00:00 +0000
+Message-ID: <10.INBOX.Sent@example.com>
+Subject: =?ISO-8859-1?Q?R=E9sum=E9?= 10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+This is test message 10 in INBOX.Sent.

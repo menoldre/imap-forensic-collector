@@ -1,0 +1,85 @@
+2026-08-28T23:26:47.177Z INFO     ========================================================================
+2026-08-28T23:26:47.177Z INFO     IMAP Forensic Collector v1.0.0
+2026-08-28T23:26:47.177Z INFO     UTC start time : 2026-08-28T23:26:47.177300+00:00
+2026-08-28T23:26:47.177Z INFO     Examiner       : Validation fixture run
+2026-08-28T23:26:47.177Z INFO     Case ID        : VALIDATION-001
+2026-08-28T23:26:47.177Z INFO     Host           : 127.0.0.1:9993
+2026-08-28T23:26:47.177Z INFO     User           : tester
+2026-08-28T23:26:47.177Z INFO     Python         : 3.13.5 (C:\Python313\python.exe)
+2026-08-28T23:26:47.264Z INFO     Platform       : Windows-11-10.0.26200-SP0
+2026-08-28T23:26:47.264Z INFO     Collecting host: JiffyLenovoRon
+2026-08-28T23:26:47.266Z INFO     Extra CA cert  : D:\python\imap-forensic-collector\docker\certs\server.crt (sha256 995ebeddf3bf2d99c5bca15faed82fec84a50a1e943383ecbbc58f9fcec4083e)
+2026-08-28T23:26:47.266Z INFO     Output dir     : D:\python\imap-forensic-collector\testdata\expected
+2026-08-28T23:26:47.266Z INFO     Mode           : COLLECT
+2026-08-28T23:26:47.266Z INFO     Folders        : ALL
+2026-08-28T23:26:47.267Z INFO     ========================================================================
+2026-08-28T23:26:47.281Z INFO     Connecting to 127.0.0.1:9993 (IMAP over TLS)
+2026-08-28T23:26:47.325Z INFO     Server cert    : CN=localhost  notAfter=Aug 25 22:59:47 2036 GMT  SANs=localhost,127.0.0.1
+2026-08-28T23:26:47.331Z INFO     Logged in as tester
+2026-08-28T23:26:47.333Z INFO     LIST returned 9 entries
+2026-08-28T23:26:47.333Z INFO       folder: INBOX  [raw='INBOX' delim='.' attrs=\HasChildren]
+2026-08-28T23:26:47.333Z INFO       skip (\Noselect): INBOX.Clients
+2026-08-28T23:26:47.333Z INFO       folder: INBOX.Clients.Smith & Co  [raw='INBOX.Clients.Smith &- Co' delim='.' attrs=\HasNoChildren]
+2026-08-28T23:26:47.334Z INFO       folder: INBOX.ältere Projekte  [raw='INBOX.&AOQ-ltere Projekte' delim='.' attrs=\HasNoChildren]
+2026-08-28T23:26:47.335Z INFO       folder: INBOX.Archive  [raw='INBOX.Archive' delim='.' attrs=\HasChildren]
+2026-08-28T23:26:47.335Z INFO       folder: INBOX.Archive.2019  [raw='INBOX.Archive.2019' delim='.' attrs=\HasChildren]
+2026-08-28T23:26:47.335Z INFO       folder: INBOX.Archive.2019.Q4 Invoices  [raw='INBOX.Archive.2019.Q4 Invoices' delim='.' attrs=\HasNoChildren]
+2026-08-28T23:26:47.335Z INFO       folder: INBOX.Drafts  [raw='INBOX.Drafts' delim='.' attrs=\HasNoChildren \Drafts]
+2026-08-28T23:26:47.335Z INFO       folder: INBOX.Sent  [raw='INBOX.Sent' delim='.' attrs=\HasNoChildren \Sent]
+2026-08-28T23:26:47.335Z INFO     8 selectable folder(s) to process
+2026-08-28T23:26:47.335Z INFO     ------------------------------------------------------------------------
+2026-08-28T23:26:47.335Z INFO     Folder: INBOX
+2026-08-28T23:26:47.337Z INFO     Folder INBOX -> directory 'INBOX'  UIDVALIDITY=1787958027  SEARCH count=12  [raw='INBOX']
+2026-08-28T23:26:48.444Z INFO     Folder INBOX done: search=12 attempted=12 written=12 skipped=0 failed=0
+2026-08-28T23:26:48.444Z INFO     ------------------------------------------------------------------------
+2026-08-28T23:26:48.444Z INFO     Folder: INBOX.Clients.Smith & Co
+2026-08-28T23:26:48.446Z INFO     Folder INBOX.Clients.Smith & Co -> directory 'INBOX.Clients.Smith & Co'  UIDVALIDITY=1787958034  SEARCH count=12  [raw='INBOX.Clients.Smith &- Co']
+2026-08-28T23:26:49.646Z INFO     Folder INBOX.Clients.Smith & Co done: search=12 attempted=12 written=12 skipped=0 failed=0
+2026-08-28T23:26:49.646Z INFO     ------------------------------------------------------------------------
+2026-08-28T23:26:49.646Z INFO     Folder: INBOX.ältere Projekte
+2026-08-28T23:26:49.649Z INFO     Folder INBOX.ältere Projekte -> directory 'INBOX.ältere Projekte'  UIDVALIDITY=1787958033  SEARCH count=12  [raw='INBOX.&AOQ-ltere Projekte']
+2026-08-28T23:26:50.851Z INFO     Folder INBOX.ältere Projekte done: search=12 attempted=12 written=12 skipped=0 failed=0
+2026-08-28T23:26:50.851Z INFO     ------------------------------------------------------------------------
+2026-08-28T23:26:50.851Z INFO     Folder: INBOX.Archive
+2026-08-28T23:26:50.853Z INFO     Folder INBOX.Archive -> directory 'INBOX.Archive'  UIDVALIDITY=1787958030  SEARCH count=12  [raw='INBOX.Archive']
+2026-08-28T23:26:52.054Z INFO     Folder INBOX.Archive done: search=12 attempted=12 written=12 skipped=0 failed=0
+2026-08-28T23:26:52.054Z INFO     ------------------------------------------------------------------------
+2026-08-28T23:26:52.054Z INFO     Folder: INBOX.Archive.2019
+2026-08-28T23:26:52.056Z INFO     Folder INBOX.Archive.2019 -> directory 'INBOX.Archive.2019'  UIDVALIDITY=1787958031  SEARCH count=12  [raw='INBOX.Archive.2019']
+2026-08-28T23:26:53.256Z INFO     Folder INBOX.Archive.2019 done: search=12 attempted=12 written=12 skipped=0 failed=0
+2026-08-28T23:26:53.256Z INFO     ------------------------------------------------------------------------
+2026-08-28T23:26:53.256Z INFO     Folder: INBOX.Archive.2019.Q4 Invoices
+2026-08-28T23:26:53.258Z INFO     Folder INBOX.Archive.2019.Q4 Invoices -> directory 'INBOX.Archive.2019.Q4 Invoices'  UIDVALIDITY=1787958032  SEARCH count=12  [raw='INBOX.Archive.2019.Q4 Invoices']
+2026-08-28T23:26:54.461Z INFO     Folder INBOX.Archive.2019.Q4 Invoices done: search=12 attempted=12 written=12 skipped=0 failed=0
+2026-08-28T23:26:54.461Z INFO     ------------------------------------------------------------------------
+2026-08-28T23:26:54.461Z INFO     Folder: INBOX.Drafts
+2026-08-28T23:26:54.462Z INFO     Folder INBOX.Drafts -> directory 'INBOX.Drafts'  UIDVALIDITY=1787958029  SEARCH count=12  [raw='INBOX.Drafts']
+2026-08-28T23:26:55.664Z INFO     Folder INBOX.Drafts done: search=12 attempted=12 written=12 skipped=0 failed=0
+2026-08-28T23:26:55.664Z INFO     ------------------------------------------------------------------------
+2026-08-28T23:26:55.664Z INFO     Folder: INBOX.Sent
+2026-08-28T23:26:55.665Z INFO     Folder INBOX.Sent -> directory 'INBOX.Sent'  UIDVALIDITY=1787958028  SEARCH count=12  [raw='INBOX.Sent']
+2026-08-28T23:26:56.868Z INFO     Folder INBOX.Sent done: search=12 attempted=12 written=12 skipped=0 failed=0
+2026-08-28T23:26:56.869Z INFO     ========================================================================
+2026-08-28T23:26:56.870Z INFO     SUMMARY
+2026-08-28T23:26:56.870Z INFO     UTC end time : 2026-08-28T23:26:56.869957+00:00
+2026-08-28T23:26:56.870Z INFO     Elapsed      : 0:00:09.692657
+2026-08-28T23:26:56.870Z INFO       INBOX                                    dir='INBOX' uidvalidity=1787958027 search=12 attempted=12 written=12 skipped=0 failed=0 files=12
+2026-08-28T23:26:56.870Z INFO       INBOX.Clients.Smith & Co                 dir='INBOX.Clients.Smith & Co' uidvalidity=1787958034 search=12 attempted=12 written=12 skipped=0 failed=0 files=12
+2026-08-28T23:26:56.870Z INFO       INBOX.ältere Projekte                    dir='INBOX.ältere Projekte' uidvalidity=1787958033 search=12 attempted=12 written=12 skipped=0 failed=0 files=12
+2026-08-28T23:26:56.870Z INFO       INBOX.Archive                            dir='INBOX.Archive' uidvalidity=1787958030 search=12 attempted=12 written=12 skipped=0 failed=0 files=12
+2026-08-28T23:26:56.870Z INFO       INBOX.Archive.2019                       dir='INBOX.Archive.2019' uidvalidity=1787958031 search=12 attempted=12 written=12 skipped=0 failed=0 files=12
+2026-08-28T23:26:56.870Z INFO       INBOX.Archive.2019.Q4 Invoices           dir='INBOX.Archive.2019.Q4 Invoices' uidvalidity=1787958032 search=12 attempted=12 written=12 skipped=0 failed=0 files=12
+2026-08-28T23:26:56.871Z INFO       INBOX.Drafts                             dir='INBOX.Drafts' uidvalidity=1787958029 search=12 attempted=12 written=12 skipped=0 failed=0 files=12
+2026-08-28T23:26:56.871Z INFO       INBOX.Sent                               dir='INBOX.Sent' uidvalidity=1787958028 search=12 attempted=12 written=12 skipped=0 failed=0 files=12
+2026-08-28T23:26:56.871Z INFO     Total bytes written this run: 37068
+2026-08-28T23:26:56.889Z INFO     manifest.csv sha256: b22a267df28b506db6539acae1fbb481b471a79a6cdc3781446a0b2bb6858e9c  (recorded in manifest.sha256)
+2026-08-28T23:26:56.889Z INFO     Completeness check: PASS
+2026-08-28T23:26:56.889Z INFO     ========================================================================
+2026-08-28T23:26:56.889Z INFO     UTC end time: 2026-08-28T23:26:56.889536+00:00  elapsed: 0:00:09.712236
+2026-08-28T23:26:56.985Z INFO     ========================================================================
+2026-08-28T23:26:56.985Z INFO     VERIFY  v1.0.0  UTC 2026-08-28T23:26:56.985457+00:00  manifest=D:\python\imap-forensic-collector\testdata\expected\manifest.csv
+2026-08-28T23:26:56.987Z INFO     VERIFY: manifest.csv unchanged since last run (sha256 b22a267df28b506db6539acae1fbb481b471a79a6cdc3781446a0b2bb6858e9c)
+2026-08-28T23:26:57.134Z INFO     Verified 96 file(s): 0 missing, 0 mismatched/duplicate, 0 unlisted
+2026-08-28T23:26:57.135Z INFO     manifest.csv sha256 as verified: b22a267df28b506db6539acae1fbb481b471a79a6cdc3781446a0b2bb6858e9c
+2026-08-28T23:26:57.135Z INFO     VERIFY RESULT: PASS
+2026-08-28T23:26:57.135Z INFO     ========================================================================

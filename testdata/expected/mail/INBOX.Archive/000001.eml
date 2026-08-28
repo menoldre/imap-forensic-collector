@@ -1,0 +1,11 @@
+From: Sender 1 <sender1@example.com>
+To: tester@example.com
+Cc: cc1@example.com
+Date: Fri, 04 Jan 2019 01:00:00 +0000
+Message-ID: <1.INBOX.Archive@example.com>
+Subject: =?UTF-8?B?w4TDtsO8?= umlaut subject 1
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+
+This is test message 1 in INBOX.Archive.
+This is test message 1 in INBOX.Archive.
