@@ -1,0 +1,46 @@
+# Local Dovecot IMAP server for testing imap-forensic-collector.
+#
+#   docker compose up -d          # start (generates a self-signed cert on first run)
+#   python seed_mailbox.py        # populate test folders/messages via IMAP APPEND
+#   docker compose down -v        # stop and discard all mail/certs
+#
+# IMAP over TLS on 127.0.0.1:9993, user "tester", password "testpass".
+# CA/cert to trust: ./certs/server.crt  (pass via --ca-cert or [source] ca_cert)
+
+services:
+  certgen:
+    image: alpine/openssl:latest
+    volumes:
+      - ./certs:/certs
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        set -e
+        if [ ! -f /certs/server.crt ]; then
+          openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+            -keyout /certs/server.key -out /certs/server.crt \
+            -subj "/CN=localhost" \
+            -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+          chmod 644 /certs/server.key /certs/server.crt
+          echo "generated self-signed certificate"
+        else
+          echo "certificate already present"
+        fi
+
+  dovecot:
+    image: dovecot/dovecot:2.3.21
+    depends_on:
+      certgen:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:9993:993"
+    volumes:
+      - ./dovecot.conf:/etc/dovecot/dovecot.conf:ro
+      - ./users:/etc/dovecot/users:ro
+      - ./certs:/etc/dovecot/certs:ro
+      - maildata:/srv/mail
+    restart: unless-stopped
+
+volumes:
+  maildata:

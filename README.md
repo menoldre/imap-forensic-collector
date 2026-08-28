@@ -28,7 +28,8 @@ python imap_forensic_collector.py --verify-only    # re-hash everything in manif
 ```
 
 Flags: `--config PATH`, `--output DIR`, `--folders ALL|A,B,C`, `--resume`,
-`--verify-only`, `--dry-run`, `--verbose` (per-message DEBUG lines in the log).
+`--verify-only`, `--dry-run`, `--verbose` (per-message DEBUG lines in the log),
+`--ca-cert PEM` (trust an additional certificate, e.g. for the local test server).
 
 ## Output
 
@@ -69,6 +70,32 @@ re-hashing the manifest and comparing to that sidecar: a match is logged as
 "unchanged since last run"; a mismatch is logged as an ERROR (the manifest was edited
 outside the tool) and fails verification. The log therefore records an unbroken chain
 of manifest hashes across runs.
+
+## Local test server (Docker)
+
+`docker/` contains a Dovecot 2.3 setup mirroring the OpenSRS layout (`.` delimiter,
+`INBOX.` prefix) with a self-signed certificate and one user (`tester` / `testpass`)
+on `127.0.0.1:9993`. Requires Docker Desktop (WSL 2 backend on Windows).
+
+```powershell
+cd docker
+docker compose up -d           # first run generates certs/server.crt
+python seed_mailbox.py         # creates folders (incl. nested/Unicode) and APPENDs messages
+cd ..
+
+$env:IMAP_PASSWORD = 'testpass'
+python imap_forensic_collector.py --config docker\config.test.ini --dry-run
+python imap_forensic_collector.py --config docker\config.test.ini
+python imap_forensic_collector.py --config docker\config.test.ini --verify-only
+```
+
+`docker compose down -v` discards all mail and certs. The seeding script is the only
+thing in this repo that issues IMAP write commands.
+
+`--ca-cert PEM` (or `[source] ca_cert`) adds one certificate to the trust store for such
+a test server; the file's SHA-256 and the server certificate's CN/expiry are logged in
+the header so a test run is distinguishable from a production run. Certificate
+verification is never disabled.
 
 ## Testing
 

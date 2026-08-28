@@ -321,6 +321,7 @@ class Settings:
         self.verify_only = False
         self.dry_run = False
         self.verbose = False
+        self.ca_cert: Path | None = None
 
 
 def load_settings(argv: list[str] | None = None) -> Settings:
@@ -334,6 +335,9 @@ def load_settings(argv: list[str] | None = None) -> Settings:
     ap.add_argument("--verify-only", action="store_true", help="re-hash files listed in manifest.csv")
     ap.add_argument("--dry-run", action="store_true", help="enumerate folders and counts; write only the log")
     ap.add_argument("--verbose", action="store_true", help="log per-message progress (DEBUG)")
+    ap.add_argument("--ca-cert", default=None, metavar="PEM",
+                    help="additionally trust this CA/certificate PEM file (for a test server "
+                         "with a self-signed certificate); verification is never disabled")
     ap.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     args = ap.parse_args(argv)
 
@@ -350,6 +354,7 @@ def load_settings(argv: list[str] | None = None) -> Settings:
     s.user = cp.get("source", "user", fallback="")
     out = cp.get("collection", "output_dir", fallback=None)
     folders = cp.get("collection", "folders", fallback="ALL")
+    ca = cp.get("source", "ca_cert", fallback="") or ""
     s.examiner = cp.get("collection", "examiner", fallback="")
     s.case_id = cp.get("collection", "case_id", fallback="")
 
@@ -365,6 +370,13 @@ def load_settings(argv: list[str] | None = None) -> Settings:
         folders = args.folders
     if folders.strip().upper() != "ALL":
         s.folders = [f.strip() for f in folders.split(",") if f.strip()]
+
+    if args.ca_cert:
+        ca = args.ca_cert
+    if ca:
+        s.ca_cert = Path(ca)
+        if not s.ca_cert.is_file():
+            ap.error(f"--ca-cert file not found: {s.ca_cert}")
 
     s.resume = args.resume
     s.verify_only = args.verify_only
@@ -405,8 +417,18 @@ class Connection:
 
     def open(self) -> None:
         ctx = ssl.create_default_context()  # certificate verification stays ON
+        if self.s.ca_cert:
+            ctx.load_verify_locations(cafile=str(self.s.ca_cert))
         log.info("Connecting to %s:%d (IMAP over TLS)", self.s.host, self.s.port)
         self.conn = imaplib.IMAP4_SSL(self.s.host, self.s.port, ssl_context=ctx, timeout=120)
+        try:
+            cert = self.conn.sock.getpeercert()
+            subj = dict(x[0] for x in cert.get("subject", ()))
+            log.info("Server cert    : CN=%s  notAfter=%s  SANs=%s",
+                     subj.get("commonName"), cert.get("notAfter"),
+                     ",".join(v for _, v in cert.get("subjectAltName", ())))
+        except Exception:  # noqa: BLE001
+            pass
         typ, _ = self.conn.login(self.s.user, self.s.password)
         if typ != "OK":
             raise imaplib.IMAP4.error("login failed")
@@ -668,6 +690,8 @@ class Collector:
         log.info("Python         : %s (%s)", platform.python_version(), sys.executable)
         log.info("Platform       : %s", platform.platform())
         log.info("Collecting host: %s", socket.gethostname())
+        if self.s.ca_cert:
+            log.info("Extra CA cert  : %s (sha256 %s)", self.s.ca_cert.resolve(), sha256_file(self.s.ca_cert))
         log.info("Output dir     : %s", self.out.resolve())
         log.info(
             "Mode           : %s",
