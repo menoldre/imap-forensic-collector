@@ -6,7 +6,7 @@ user = custodian@example.com
 
 [collection]
 ; {user} = the mailbox login above, {date} = UTC run date (YYYY-MM-DD)
-; e.g. ./collection_{user}  or  E:\Cases6-0042\{user}  or  ./{user}_{date}
+; e.g. ./collection_{user}  or  E:\Cases\2026-0042\{user}  or  ./{user}_{date}
 output_dir = ./collection_{user}
 folders = ALL          ; or comma-separated list of IMAP folder names
 examiner = J. Smith
