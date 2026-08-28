@@ -312,7 +312,7 @@ class Settings:
         self.port = 993
         self.user = ""
         self.password = ""
-        self.output_dir = Path(f"./collection_{utc_now():%Y-%m-%d}")
+        self.output_dir = Path("./collection_unknown_user")
         self.folders: list[str] | None = None  # None == ALL
         self.examiner = ""
         self.case_id = ""
@@ -348,14 +348,18 @@ def load_settings(argv: list[str] | None = None) -> Settings:
     s.port = cp.getint("source", "port", fallback=993)
     s.user = cp.get("source", "user", fallback="")
     out = cp.get("collection", "output_dir", fallback=None)
-    if out:
-        s.output_dir = Path(out.replace("YYYY-MM-DD", f"{utc_now():%Y-%m-%d}"))
     folders = cp.get("collection", "folders", fallback="ALL")
     s.examiner = cp.get("collection", "examiner", fallback="")
     s.case_id = cp.get("collection", "case_id", fallback="")
 
     if args.output:
-        s.output_dir = Path(args.output)
+        out = args.output
+    if out:
+        # Tokens: {user} = mailbox login (Windows-safe), {date} = UTC run date.
+        safe_user = _ILLEGAL_RE.sub("_", s.user) or "unknown_user"
+        out = out.replace("{user}", safe_user).replace("{date}", f"{utc_now():%Y-%m-%d}")
+        out = out.replace("YYYY-MM-DD", f"{utc_now():%Y-%m-%d}")  # legacy token
+        s.output_dir = Path(out)
     if args.folders:
         folders = args.folders
     if folders.strip().upper() != "ALL":

@@ -32,8 +32,12 @@ Flags: `--config PATH`, `--output DIR`, `--folders ALL|A,B,C`, `--resume`,
 
 ## Output
 
+`output_dir` in `config.ini` (or `--output`) accepts `{user}` (mailbox login) and
+`{date}` (UTC run date) tokens; default is `./collection_{user}`. The run date is
+recorded in the log header and footer.
+
 ```
-collection_2026-08-28/
+collection_custodian@example.com/
 ├── manifest.csv       UTF-8 with BOM; one row per message (see spec for columns)
 ├── failures.csv       only if any message could not be fetched after 3 attempts
 ├── collection.log     UTC-timestamped; header/footer blocks + per-folder completeness check
