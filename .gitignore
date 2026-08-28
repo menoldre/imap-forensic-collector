@@ -1,0 +1,4 @@
+config.ini
+collection_*/
+__pycache__/
+*.pyc

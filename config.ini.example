@@ -1,0 +1,11 @@
+[source]
+host = mail.b.hostedemail.com
+port = 993
+user = custodian@example.com
+; password is read from the IMAP_PASSWORD env var, or prompted via getpass if unset
+
+[collection]
+output_dir = ./collection_YYYY-MM-DD
+folders = ALL          ; or comma-separated list of IMAP folder names
+examiner = J. Smith
+case_id = 2026-0042
