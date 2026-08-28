@@ -34,6 +34,7 @@ __version__ = "1.0.0"
 
 MANIFEST_NAME = "manifest.csv"
 FAILURES_NAME = "failures.csv"
+MANIFEST_HASH_NAME = "manifest.sha256"
 LOG_NAME = "collection.log"
 MAIL_DIRNAME = "mail"
 
@@ -540,6 +541,50 @@ def read_manifest(path: Path) -> list[dict]:
         return list(csv.DictReader(fh))
 
 
+def sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def read_recorded_manifest_hash(out: Path) -> str | None:
+    p = out / MANIFEST_HASH_NAME
+    if not p.exists():
+        return None
+    return p.read_text(encoding="ascii").split()[0].strip().lower() or None
+
+
+def check_manifest_hash(out: Path, context: str) -> bool:
+    """Compare manifest.csv against the hash recorded at the end of the previous run.
+    Returns True if it matches (or nothing was recorded); logs an ERROR otherwise."""
+    mpath = out / MANIFEST_NAME
+    if not mpath.exists():
+        return True
+    actual = sha256_file(mpath)
+    recorded = read_recorded_manifest_hash(out)
+    if recorded is None:
+        log.warning("%s: no %s found; cannot confirm manifest is unchanged since last run "
+                    "(sha256 as found: %s)", context, MANIFEST_HASH_NAME, actual)
+        return True
+    if actual == recorded:
+        log.info("%s: manifest.csv unchanged since last run (sha256 %s)", context, actual)
+        return True
+    log.error("%s: manifest.csv MODIFIED outside this tool since last run: recorded %s, found %s",
+              context, recorded, actual)
+    return False
+
+
+def record_manifest_hash(out: Path) -> str | None:
+    mpath = out / MANIFEST_NAME
+    if not mpath.exists():
+        return None
+    digest = sha256_file(mpath)
+    (out / MANIFEST_HASH_NAME).write_text(f"{digest}  {MANIFEST_NAME}\n", encoding="ascii")
+    return digest
+
+
 # --------------------------------------------------------------------------- #
 # Collection
 # --------------------------------------------------------------------------- #
@@ -573,6 +618,7 @@ class Collector:
         self.done: set[tuple[str, int, int]] = set()  # (folder, uidvalidity, uid)
         self.prior_uidvalidity: dict[str, int] = {}
         self.prior_dirs: dict[str, str] = {}  # folder -> folder_dir from prior manifest
+        self.manifest_hash_ok = True
 
     # ---- lifecycle ------------------------------------------------------- #
 
@@ -686,6 +732,7 @@ class Collector:
         if not mpath.exists():
             log.warning("--resume given but no manifest found; starting fresh collection")
             return
+        self.manifest_hash_ok = check_manifest_hash(self.out, "RESUME")
         rows = read_manifest(mpath)
         for r in rows:
             try:
@@ -898,6 +945,16 @@ class Collector:
                     st.name, on_disk, st.failed, on_disk + st.failed, st.search_count,
                 )
         log.info("Total bytes written this run: %d", total_bytes)
+        if self.manifest:
+            self.manifest.close()
+            self.manifest = None
+        digest = record_manifest_hash(self.out)
+        if digest:
+            log.info("manifest.csv sha256: %s  (recorded in %s)", digest, MANIFEST_HASH_NAME)
+        if not self.manifest_hash_ok:
+            ok = False
+            log.error("Manifest found at start of this resume did not match the hash recorded "
+                      "by the previous run; see RESUME entry above")
         changed = [st.name for st in self.stats if st.uidvalidity_changed]
         if changed:
             log.error("UIDVALIDITY changed during resume for: %s", ", ".join(changed))
@@ -920,13 +977,19 @@ def verify(out: Path) -> int:
     if not mpath.exists():
         log.error("manifest not found: %s", mpath)
         return 2
+    manifest_ok = check_manifest_hash(out, "VERIFY")
     rows = read_manifest(mpath)
     # The manifest is append-only: a --resume re-fetch of a message whose file had gone
     # missing appends a new row. The LAST row for a path is authoritative; earlier rows
     # are reported so the history is visible.
     latest: dict[str, dict] = {}
+    malformed = 0
     for r in rows:
-        rel = r.get("relative_path", "")
+        rel = r.get("relative_path") or ""
+        if not rel:
+            log.error("MALFORMED manifest row (no relative_path): %r", r)
+            malformed += 1
+            continue
         if rel in latest:
             prev = latest[rel]
             level = logging.WARNING if prev.get("sha256") == r.get("sha256") else logging.ERROR
@@ -948,7 +1011,7 @@ def verify(out: Path) -> int:
         digest = h.hexdigest()
         size = p.stat().st_size
         checked += 1
-        if digest != r.get("sha256", "").lower():
+        if digest != (r.get("sha256") or "").lower():
             log.error("HASH MISMATCH  %s  manifest=%s actual=%s", rel, r.get("sha256"), digest)
             mismatched += 1
         elif str(size) != str(r.get("size_bytes", "")):
@@ -971,7 +1034,8 @@ def verify(out: Path) -> int:
         log.warning("%s present with %d documented failure(s)", FAILURES_NAME, nfail)
     log.info("Verified %d file(s): %d missing, %d mismatched/duplicate, %d unlisted",
              checked, missing, mismatched, extra)
-    ok = missing == 0 and mismatched == 0 and extra == 0
+    log.info("manifest.csv sha256 as verified: %s", sha256_file(mpath))
+    ok = missing == 0 and mismatched == 0 and extra == 0 and malformed == 0 and manifest_ok
     log.info("VERIFY RESULT: %s", "PASS" if ok else "FAIL")
     log.info("=" * 72)
     return 0 if ok else 1

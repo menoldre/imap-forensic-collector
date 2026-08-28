@@ -268,6 +268,18 @@ def main() -> None:
         p.write_bytes(MSG_TEMPLATE % (1, 1, 1))
         assert run(["--verify-only"], port, tmp) == 0
 
+        # 3b. manifest hash chain: sidecar exists and matches; tampering is detected
+        mpath = tmp / "coll" / "manifest.csv"
+        side = (tmp / "coll" / "manifest.sha256").read_text().split()[0]
+        assert side == hashlib.sha256(mpath.read_bytes()).hexdigest()
+        orig = mpath.read_bytes()
+        mpath.write_bytes(orig + b"# edited\r\n")
+        assert run(["--verify-only"], port, tmp) == 1
+        mpath.write_bytes(orig)
+        assert run(["--verify-only"], port, tmp) == 0
+        log_text = (tmp / "coll" / "collection.log").read_text(encoding="utf-8")
+        assert "manifest.csv MODIFIED outside this tool" in log_text
+
         # 4. resume: the permanently-failing message now succeeds; nothing else refetched
         state.fail_fetch_always.clear()
         before = state.fetch_count

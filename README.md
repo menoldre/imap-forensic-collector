@@ -40,6 +40,7 @@ recorded in the log header and footer.
 collection_custodian@example.com/
 ├── manifest.csv       UTF-8 with BOM; one row per message (see spec for columns)
 ├── failures.csv       only if any message could not be fetched after 3 attempts
+├── manifest.sha256    SHA-256 of manifest.csv as of the end of the last run
 ├── collection.log     UTC-timestamped; header/footer blocks + per-folder completeness check
 └── mail/
     ├── INBOX/000001.eml
@@ -59,6 +60,15 @@ file exists on disk. If a folder's UIDVALIDITY has changed since the manifest wa
 written, it is logged as an ERROR and the folder is re-collected in full into
 `<folder_dir>__uidvalidity<N>/`. The manifest is append-only; `--verify-only`
 treats the last row for a given path as authoritative and reports superseded rows.
+
+## Manifest hash chain
+
+Every collect/resume run ends by hashing `manifest.csv`, logging the digest in the
+footer, and writing it to `manifest.sha256`. `--resume` and `--verify-only` begin by
+re-hashing the manifest and comparing to that sidecar: a match is logged as
+"unchanged since last run"; a mismatch is logged as an ERROR (the manifest was edited
+outside the tool) and fails verification. The log therefore records an unbroken chain
+of manifest hashes across runs.
 
 ## Testing
 
