@@ -443,7 +443,7 @@ def load_settings(argv: list[str] | None = None) -> Settings:
         ca = args.ca_cert
     if ca:
         s.ca_cert = Path(ca)
-        if not s.ca_cert.is_file():
+        if not args.verify_only and not s.ca_cert.is_file():
             ap.error(f"--ca-cert file not found: {s.ca_cert}")
 
     s.resume = args.resume

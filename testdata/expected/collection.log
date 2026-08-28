@@ -83,3 +83,10 @@
 2026-08-28T23:26:57.135Z INFO     manifest.csv sha256 as verified: b22a267df28b506db6539acae1fbb481b471a79a6cdc3781446a0b2bb6858e9c
 2026-08-28T23:26:57.135Z INFO     VERIFY RESULT: PASS
 2026-08-28T23:26:57.135Z INFO     ========================================================================
+2026-08-28T23:29:01.386Z INFO     ========================================================================
+2026-08-28T23:29:01.386Z INFO     VERIFY  v1.0.0  UTC 2026-08-28T23:29:01.386862+00:00  manifest=D:\python\imap-forensic-collector\testdata\expected\manifest.csv
+2026-08-28T23:29:01.387Z INFO     VERIFY: manifest.csv unchanged since last run (sha256 b22a267df28b506db6539acae1fbb481b471a79a6cdc3781446a0b2bb6858e9c)
+2026-08-28T23:29:01.430Z INFO     Verified 96 file(s): 0 missing, 0 mismatched/duplicate, 0 unlisted
+2026-08-28T23:29:01.430Z INFO     manifest.csv sha256 as verified: b22a267df28b506db6539acae1fbb481b471a79a6cdc3781446a0b2bb6858e9c
+2026-08-28T23:29:01.430Z INFO     VERIFY RESULT: PASS
+2026-08-28T23:29:01.430Z INFO     ========================================================================
