@@ -65,6 +65,12 @@ class MailboxState:
         msgs = {}
         for uid in range(1, n + 1):
             body = MSG_TEMPLATE % (uid, uid, uid)
+            if uid == 3:
+                # Raw, un-encoded UTF-8 in a header (malformed but common in the wild).
+                body = body.replace(b"Subject: ", b"Subject: \xe2\x80\x94 raw dash ", 1)
+            if uid == 4:
+                # Raw Latin-1 byte in a header.
+                body = body.replace(b"From: Alice", b"From: Jos\xe9", 1)
             msgs[uid] = (body, "" if uid % 2 else "\\Seen")
         self.folders[raw] = {"uidvalidity": uidvalidity, "delim": delim, "attrs": attrs, "messages": msgs}
 
@@ -254,6 +260,10 @@ def main() -> None:
         assert r["internaldate_utc"] == "2026-08-24T07:00:00+00:00"
         assert r["date_header"] == "Mon, 24 Aug 2026 09:00:00 +0200"
         assert r["flags"] == "" and r["uidvalidity"] == "1111"
+        r3 = next(r for r in rows if r["folder"] == "INBOX" and r["uid"] == "3")
+        assert r3["subject"].startswith("\u2014 raw dash "), r3["subject"]
+        r4 = next(r for r in rows if r["folder"] == "INBOX" and r["uid"] == "4")
+        assert r4["from"].startswith("Jos\u00e9"), r4["from"]
         r2 = next(r for r in rows if r["folder"] == "INBOX" and r["uid"] == "2")
         assert r2["flags"] == "\\Seen"
         ru = next(r for r in rows if r["uid"] == "1" and r["folder"].startswith("ä"))

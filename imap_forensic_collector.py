@@ -12,11 +12,11 @@ Standard library only. Python 3.11+.
 from __future__ import annotations
 
 import argparse
+import base64
 import configparser
 import csv
 import datetime as dt
-import email.header
-import email.parser
+import email.quoprimime
 import getpass
 import hashlib
 import imaplib
@@ -97,8 +97,6 @@ def decode_modified_utf7(name: str) -> str:
             b64 = chunk.replace(",", "/")
             b64 += "=" * (-len(b64) % 4)
             try:
-                import base64
-
                 out.append(base64.b64decode(b64).decode("utf-16-be"))
             except Exception:
                 out.append(name[i : j + 1])
@@ -248,24 +246,94 @@ def internaldate_to_utc_iso(raw: str) -> str:
         return ""
 
 
+_ENCODED_WORD_RE = re.compile(r"=\?([^?\s]+)\?([bBqQ])\?([^?\s]*)\?=")
+_EW_GAP_RE = re.compile(r"(\?=)\s+(=\?)")
+
+
 def decode_subject(raw: str | None) -> str:
+    """Decode RFC 2047 encoded-words. Anything undecodable is left as-is; on any
+    unexpected failure the raw value is returned so the manifest is never empty."""
     if raw is None:
         return ""
+    text = raw
     try:
-        return str(email.header.make_header(email.header.decode_header(raw)))
-    except Exception:
-        return raw
+        text = _EW_GAP_RE.sub(r"\1\2", text)  # whitespace between adjacent encoded-words is dropped
+
+        def repl(m: re.Match) -> str:
+            charset, enc, payload = m.group(1), m.group(2).upper(), m.group(3)
+            charset = charset.split("*", 1)[0]  # strip RFC 2231 language tag
+            try:
+                if enc == "B":
+                    data = base64.b64decode(payload + "=" * (-len(payload) % 4))
+                else:
+                    data = email.quoprimime.header_decode(payload).encode("latin-1")
+                return data.decode(charset, errors="replace")
+            except Exception:  # noqa: BLE001
+                return m.group(0)
+
+        return _ENCODED_WORD_RE.sub(repl, text)
+    except Exception:  # noqa: BLE001
+        return text
 
 
-def header_str(msg, name: str) -> str:
-    """Raw header value as a str; empty if absent. Never raises."""
+def _decode_header_bytes(b: bytes) -> str:
+    """Raw header bytes -> str. UTF-8 if valid, else Latin-1 (never lossy)."""
     try:
-        v = msg.get(name)
-    except Exception:
-        return ""
-    if v is None:
-        return ""
-    return str(v)
+        return b.decode("utf-8")
+    except UnicodeDecodeError:
+        return b.decode("latin-1")
+
+
+def extract_headers(body: bytes) -> dict[str, list[str]]:
+    """
+    Read the header block straight from the raw message bytes.
+
+    Tolerates CRLF or bare-LF line endings, unfolds continuation lines, and returns
+    {lowercased-name: [values...]} in order of appearance. Values are the raw text
+    after the colon with leading/trailing whitespace stripped; RFC 2047 encoded-words
+    are NOT decoded here. Works on a copy of the bytes; the message on disk is never
+    derived from this. Never raises on malformed input.
+    """
+    headers: dict[str, list[str]] = {}
+    # Header block ends at the first blank line.
+    end = len(body)
+    for sep in (b"\r\n\r\n", b"\n\n"):
+        i = body.find(sep)
+        if i != -1:
+            end = min(end, i)
+    block = body[:end]
+    lines = block.split(b"\n")
+    name: str | None = None
+    value: list[bytes] = []
+
+    def flush() -> None:
+        if name is not None:
+            raw = b" ".join(part.strip(b" \r\t") for part in value)
+            headers.setdefault(name, []).append(_decode_header_bytes(raw).strip())
+
+    for line in lines:
+        line = line.rstrip(b"\r")
+        if line[:1] in (b" ", b"\t") and name is not None:
+            value.append(line)
+            continue
+        flush()
+        name, value = None, []
+        colon = line.find(b":")
+        if colon <= 0:
+            continue  # not a header line (e.g. mbox "From " line or garbage)
+        raw_name = line[:colon].strip()
+        if not raw_name or any(c <= 32 or c == 127 for c in raw_name):
+            continue
+        name = raw_name.decode("ascii", "replace").lower()
+        value = [line[colon + 1 :]]
+    flush()
+    return headers
+
+
+def header_value(headers: dict[str, list[str]], name: str) -> str:
+    """First occurrence of a header, or empty string."""
+    vals = headers.get(name.lower())
+    return vals[0] if vals else ""
 
 
 def csv_safe(s: str) -> str:
@@ -913,10 +981,10 @@ class Collector:
 
         # Scratch parse of a copy for header fields only; never touches what is on disk.
         try:
-            msg = email.parser.BytesParser().parsebytes(bytes(body), headersonly=True)
+            hdrs = extract_headers(bytes(body))
         except Exception as e:  # noqa: BLE001
             log.warning("uid=%d header parse failed (%s); manifest header fields left empty", uid, e)
-            msg = None
+            hdrs = {}
 
         row = {
             "folder": uni,
@@ -925,16 +993,16 @@ class Collector:
             "uid": uid,
             "relative_path": f"{MAIL_DIRNAME}/{folder_dir}/{path.name}",
             "internaldate_utc": internaldate_to_utc_iso(r["internaldate_raw"]),
-            "date_header": header_str(msg, "Date") if msg else "",
+            "date_header": header_value(hdrs, "Date"),
             "flags": r["flags"],
             "size_bytes": size,
             "rfc822_size": rfc_size if rfc_size is not None else "",
             "sha256": sha,
-            "message_id": header_str(msg, "Message-ID") if msg else "",
-            "from": header_str(msg, "From") if msg else "",
-            "to": header_str(msg, "To") if msg else "",
-            "cc": header_str(msg, "Cc") if msg else "",
-            "subject": decode_subject(header_str(msg, "Subject")) if msg else "",
+            "message_id": header_value(hdrs, "Message-ID"),
+            "from": header_value(hdrs, "From"),
+            "to": header_value(hdrs, "To"),
+            "cc": header_value(hdrs, "Cc"),
+            "subject": decode_subject(header_value(hdrs, "Subject")),
         }
         assert self.manifest is not None
         self.manifest.write(row)
