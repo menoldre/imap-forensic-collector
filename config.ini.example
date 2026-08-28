@@ -2,12 +2,12 @@
 host = mail.b.hostedemail.com
 port = 993
 user = custodian@example.com
-; password is read from the IMAP_PASSWORD env var, or prompted via getpass if unset
+# password is read from the IMAP_PASSWORD env var, or prompted via getpass if unset
 
 [collection]
-; {user} = the mailbox login above, {date} = UTC run date (YYYY-MM-DD)
-; e.g. ./collection_{user}  or  E:\Cases\2026-0042\{user}  or  ./{user}_{date}
+# {user} = the mailbox login above, {date} = UTC run date (YYYY-MM-DD)
+# e.g. ./collection_{user}  or  E:\Cases\2026-0042\{user}  or  ./{user}_{date}
 output_dir = ./collection_{user}
-folders = ALL          ; or comma-separated list of IMAP folder names
+folders = ALL          # or comma-separated list of IMAP folder names
 examiner = J. Smith
 case_id = 2026-0042
